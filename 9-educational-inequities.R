@@ -185,11 +185,7 @@ district_tidy_df %>%
   labs(title = "Percentage of Population by Subgroup", x = "Subgroup", y = "Percentage of Population") +
   scale_x_discrete(
     labels = c(
-<<<<<<< HEAD
-      "aa_pct" = "African Am.",
-=======
       "aa_pct" = "Black",
->>>>>>> 981fbd3966d556f51492716c76607744df972f14
       "wh_pct" = "White",
       "hi_pct" = "Hispanic",
       "as_pct" = "Asian",
@@ -256,7 +252,5 @@ district_merged_df %>%
   scale_x_continuous(labels = scales::percent) +
   theme_dataedu() +
   theme(legend.position = "none")
-  scale_x_continous(labels = scales::percent) +
-  theme(legend.position = "none") + 
   theme_dataedu()
   
