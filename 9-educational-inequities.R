@@ -114,7 +114,7 @@ frpl_df2 <-
     # remove empty rows
     school_name != "",
     # Filter out the rows in this list!
-    school_name %in% c(
+    !school_name %in% c(
       "ELM K_08",
       "Mid Schl",
       "High Schl",
