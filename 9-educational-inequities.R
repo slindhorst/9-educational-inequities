@@ -114,7 +114,7 @@ frpl_df2 <-
     # remove empty rows
     school_name != "",
     # Filter out the rows in this list!
-    school_name %in% c(
+    !school_name %in% c(
       "ELM K_08",
       "Mid Schl",
       "High Schl",
@@ -136,3 +136,127 @@ joined_df <-
   mutate(across(2:17, as.numeric))
 
 glimpse(joined_df)
+
+district_merged_df <-
+  joined_df %>%
+  # Calculate high-poverty numbers
+  mutate(
+    hi_povnum = case_when(frpl_pct > .75 ~ hi_num),
+    aa_povnum = case_when(frpl_pct > .75 ~ aa_num),
+    wh_povnum = case_when(frpl_pct > .75 ~ wh_num),
+    as_povnum = case_when(frpl_pct > .75 ~ as_num),
+    na_povnum = case_when(frpl_pct > .75 ~ na_num)
+  ) %>%
+    # Calucluate totals of students
+  adorn_totals() %>% 
+  # Create percentage by demographic
+  mutate(
+    na_pct = na_num / tot,
+    aa_pct = aa_num / tot,
+    as_pct = as_num / tot,
+    hi_pct = hi_num / tot,
+    wh_pct = wh_num / tot,
+    frpl_pct = (free_num + reduce_num) / frpl_num,
+    # Create precentage by demographic and poverty
+    hi_povsch = hi_povnum / hi_num[which(school_name == "Total")],
+    aa_povsch = aa_povnum / aa_num[which(school_name == "Total")],
+    as_povsch = as_povnum / as_num[which(school_name == "Total")],
+    wh_povsch = wh_povnum / wh_num[which(school_name == "Total")],
+    na_povsch = na_povnum / na_num[which(school_name == "Total")]
+  )
+
+# facilitate creation of plots later on, we use pivot_longer()
+district_tidy_df <-
+  district_merged_df %>% 
+  pivot_longer(
+    cols = -matches("school_name"),
+    names_to = "category",
+    values_to = "value"
+)
+
+district_tidy_df %>% 
+  # Filter for Total rows, since we want district-level info
+  filter(school_name == "Total",
+         str_detect(category, "pct"),
+         category != "frpl_pct") %>% 
+  # Reordering x-axis so bars appear by descending value
+  ggplot(aes(x = reorder(category, -value), y = value)) +
+  geom_bar(stat = "identity", aes(fill = category)) + 
+  labs(title = "Percentage of Population by Subgroup", x = "Subgroup", y = "Percentage of Population") +
+  scale_x_discrete(
+    labels = c(
+<<<<<<< HEAD
+      "aa_pct" = "African Am.",
+=======
+      "aa_pct" = "Black",
+>>>>>>> 981fbd3966d556f51492716c76607744df972f14
+      "wh_pct" = "White",
+      "hi_pct" = "Hispanic",
+      "as_pct" = "Asian",
+      "na_pct" = "Native Am."
+    )
+  ) +
+  # Makes labels present as percentages
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_dataedu() +
+  theme_dataedu() +
+  theme(legend.position = "none")
+
+# note those students eligible for FRPL
+district_tidy_df %>%
+  filter(category == "frpl_pct", school_name == "Total")
+
+district_merged_df %>% 
+  # Remove district totals
+  filter(school_name != "Total") %>% 
+  # x-axis will be the percentage of white students within schools
+  ggplot(aes(x = wh_pct)) +
+  geom_histogram(breaks = seq(0, 1, by = .1),
+                 fill = dataedu_colors("darkblue")) +
+  labs(title = "Count of Schools by White Population",
+       x = "White Percentage",
+       y = "Count") +
+  scale_x_continuous(labels = scales::percent) +
+  theme(legend.position = "none") + 
+  theme_dataedu()
+
+# Start to look at the distribution of student race groups in high-poverty schools
+district_tidy_df %>% 
+  filter(school_name == "Total", str_detect(category, "povsch")) %>% 
+  ggplot(aes(x = reorder(category, -value), y = value)) +
+  geom_bar(stat = "identity", aes(fill = factor(category))) +
+  labs(title = "Distribution of Subgroups in High Poverty Schools",
+       x = "Subgroup",
+       y = "Percentage in High Poverty Schools") +
+  scale_x_discrete(
+    labels = c(
+      "aa_povsch" = "African Am.",
+      "wh_povsch" = "White",
+      "hi_povsch" = "Hispanic",
+      "as_povsch" = "Asian",
+      "na_povsch" = "Native Am."
+    )
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_dataedu() +
+  theme_dataedu() +
+  theme(legend.position = "none")
+
+# Reveal relationships by investigation the correlation between race and FRPL percentage by school
+district_merged_df %>% 
+  filter(school_name != "Total") %>% 
+  ggplot(aes(x = wh_pct, y = frpl_pct)) +
+  geom_point(color = dataedu_colors("green")) +
+  geom_smooth(method = "lm",
+               se = TRUE) +
+  labs(title = "FRPL Percentage vs. White Percentage",
+       x = "White Percentage",
+       y = "FRPL Percentage") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(labels = scales::percent) +
+  theme_dataedu() +
+  theme(legend.position = "none")
+  scale_x_continous(labels = scales::percent) +
+  theme(legend.position = "none") + 
+  theme_dataedu()
+  
